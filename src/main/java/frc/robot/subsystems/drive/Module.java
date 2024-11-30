@@ -4,11 +4,23 @@
 
 package frc.robot.subsystems.drive;
 
+import edu.wpi.first.math.MatBuilder;
+import edu.wpi.first.math.Nat;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.controller.LinearQuadraticRegulator;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.estimator.KalmanFilter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.math.system.LinearSystem;
+import edu.wpi.first.math.system.LinearSystemLoop;
+import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ModuleLocation;
@@ -28,9 +40,51 @@ public class Module {
   private Double m_speedSetpoint = null; // Setpoint for closed loop control, null for open loop
   private Rotation2d m_turnRelativeOffset = null; // Relative + Offset = Absolute
 
+  private final LinearSystem<N2, N1, N2> m_plant =
+      LinearSystemId.createDCMotorSystem(0.1, 0.1);
+  private final KalmanFilter<N2, N1, N2> m_observer =
+      new KalmanFilter<>(
+          Nat.N2(),
+          Nat.N2(),
+          m_plant,
+          MatBuilder.fill(Nat.N2(), Nat.N1(), 3.0, 3.0),
+          MatBuilder.fill(Nat.N2(), Nat.N1(), 0.01, 0.01),
+          0.02);
+  private final LinearQuadraticRegulator<N2, N1, N2> m_controller =
+      new LinearQuadraticRegulator<>(
+          m_plant,
+          VecBuilder.fill(Units.degreesToRadians(1.0), Units.degreesToRadians(10.0)),
+          VecBuilder.fill(12.0),
+          0.02);
+  private final LinearSystemLoop<N2, N1, N2> m_loop =
+      new LinearSystemLoop<>(m_plant, m_controller, m_observer, 12.0, 0.02);
+
+  private final LinearSystem<N2, N1, N2> m_turnPlant =
+      LinearSystemId.createDCMotorSystem(0.001, 0.001);
+  private final KalmanFilter<N2, N1, N2> m_turnObserver =
+      new KalmanFilter<>(
+          Nat.N2(),
+          Nat.N2(),
+          m_turnPlant,
+          MatBuilder.fill(Nat.N2(), Nat.N1(), 3.0, 3.0),
+          MatBuilder.fill(Nat.N2(), Nat.N1(), 0.01, 0.01),
+          0.02);
+  private final LinearQuadraticRegulator<N2, N1, N2> m_turnController =
+      new LinearQuadraticRegulator<>(
+          m_turnPlant,
+          VecBuilder.fill(Units.degreesToRadians(1.0), Units.degreesToRadians(10.0)),
+          VecBuilder.fill(12.0),
+          0.02);
+  private final LinearSystemLoop<N2, N1, N2> m_turnLoop =
+      new LinearSystemLoop<>(m_turnPlant, m_turnController, m_turnObserver, 12.0, 0.02);
+
+  private static boolean m_isStateSpace = false;
+
   public Module(ModuleIO io, ModuleLocation location) {
     m_io = io;
     m_index = location.ordinal();
+
+    SmartDashboard.putBoolean(getClass().getSimpleName() + "/isStateSpace", m_isStateSpace);
 
     // Switch constants based on mode (the physics simulator is treated as a
     // separate robot with different tuning)
@@ -68,6 +122,8 @@ public class Module {
   public void periodic() {
     m_io.updateInputs(m_inputs);
     Logger.processInputs("Drive/Module" + Integer.toString(m_index), m_inputs);
+    m_isStateSpace =
+        SmartDashboard.getBoolean(getClass().getSimpleName() + "/isStateSpace", m_isStateSpace);
 
     // On first cycle, reset relative turn encoder
     // Wait until absolute angle is nonzero in case it wasn't initialized yet
@@ -77,8 +133,25 @@ public class Module {
 
     // Run closed loop turn control
     if (m_angleSetpoint != null) {
-      m_io.setTurnVoltage(
-          m_turnFeedback.calculate(getAngle().getRadians(), m_angleSetpoint.getRadians()));
+      if (!m_isStateSpace) {
+        m_io.setTurnVoltage(
+            m_turnFeedback.calculate(getAngle().getRadians(), m_angleSetpoint.getRadians()));
+      } else {
+        // State Space Turn Correction
+        m_turnLoop.setNextR(
+            MatBuilder.fill(
+                Nat.N2(),
+                Nat.N1(),
+                m_angleSetpoint.getRadians(),
+                (m_angleSetpoint.getRadians() - getAngle().getRadians()) / 0.02));
+        m_turnLoop.correct(
+            MatBuilder.fill(
+                Nat.N2(), Nat.N1(), getAngle().getRadians(), m_inputs.turnVelocityRadPerSec));
+
+        // State Space Turn Voltage Input
+        m_turnLoop.predict(0.02);
+        m_io.setTurnVoltage(m_turnLoop.getU(0));
+      }
 
       // Run closed loop drive control
       // Only allowed if closed loop turn control is running
@@ -90,11 +163,28 @@ public class Module {
         // taking the component of the velocity in the direction of the setpoint.
         double adjustSpeedSetpoint = m_speedSetpoint * Math.cos(m_turnFeedback.getPositionError());
 
-        // Run drive controller
         double velocityRadPerSec = adjustSpeedSetpoint / m_wheelRadius;
-        m_io.setDriveVoltage(
-            m_driveFeedforward.calculate(velocityRadPerSec)
-                + m_driveFeedback.calculate(m_inputs.driveVelocityRadPerSec, velocityRadPerSec));
+
+        if (!m_isStateSpace) {
+          // Run drive controller
+          m_io.setDriveVoltage(
+              m_driveFeedforward.calculate(velocityRadPerSec)
+                  + m_driveFeedback.calculate(m_inputs.driveVelocityRadPerSec, velocityRadPerSec));
+        } else {
+          // State Space Drive Correction
+          m_loop.setNextR(
+              MatBuilder.fill(
+                  Nat.N2(),
+                  Nat.N1(),
+                  getPositionMeters() + adjustSpeedSetpoint * 0.02,
+                  adjustSpeedSetpoint));
+          m_loop.correct(
+              MatBuilder.fill(Nat.N2(), Nat.N1(), getPositionMeters(), getVelocityMetersPerSec()));
+
+          // State Space Drive Voltage Input
+          m_loop.predict(0.02);
+          m_io.setDriveVoltage(m_loop.getU(0));
+        }
       }
     }
   }
