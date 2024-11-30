@@ -18,8 +18,9 @@ import frc.robot.Constants.SwerveConstants;
 import frc.robot.subsystems.PoseEstimatorSubsystem.SwervePoseEstimator;
 import frc.robot.subsystems.SwerveDriveSubsystem.SwerveDrive;
 import java.util.function.Supplier;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+
+// import org.littletonrobotics.junction.Logger;
+// import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 public class SwerveJoystickCmd extends Command {
 
@@ -30,21 +31,21 @@ public class SwerveJoystickCmd extends Command {
       m_turnDrivePercentFunction;
   private final Supplier<Boolean> m_fieldOrientedFunction;
 
-  private static final LoggedDashboardChooser<Double> m_linearSpeedLimitChooser =
-      new LoggedDashboardChooser<>("Linear Speed Limit");
-  private static final LoggedDashboardChooser<Double> m_angularSpeedLimitChooser =
-      new LoggedDashboardChooser<>("Angular Speed Limit");
+  // private static final LoggedDashboardChooser<Double> m_linearSpeedLimitChooser =
+  //     new LoggedDashboardChooser<>("Linear Speed Limit");
+  // private static final LoggedDashboardChooser<Double> m_angularSpeedLimitChooser =
+  //     new LoggedDashboardChooser<>("Angular Speed Limit");
 
-  static {
-    m_linearSpeedLimitChooser.addDefaultOption("100%", 1.0);
-    m_linearSpeedLimitChooser.addOption("75%", 0.75);
-    m_linearSpeedLimitChooser.addOption("50%", 0.5);
-    m_linearSpeedLimitChooser.addOption("25%", 0.25);
-    m_angularSpeedLimitChooser.addDefaultOption("100%", 1.0);
-    m_angularSpeedLimitChooser.addOption("75%", 0.75);
-    m_angularSpeedLimitChooser.addOption("50%", 0.5);
-    m_angularSpeedLimitChooser.addOption("25%", 0.25);
-  }
+  // static {
+  //   m_linearSpeedLimitChooser.addDefaultOption("100%", 1.0);
+  //   m_linearSpeedLimitChooser.addOption("75%", 0.75);
+  //   m_linearSpeedLimitChooser.addOption("50%", 0.5);
+  //   m_linearSpeedLimitChooser.addOption("25%", 0.25);
+  //   m_angularSpeedLimitChooser.addDefaultOption("100%", 1.0);
+  //   m_angularSpeedLimitChooser.addOption("75%", 0.75);
+  //   m_angularSpeedLimitChooser.addOption("50%", 0.5);
+  //   m_angularSpeedLimitChooser.addOption("25%", 0.25);
+  // }
 
   /** Creates a new SwerveJoystickCmd. */
   public SwerveJoystickCmd(
@@ -91,7 +92,9 @@ public class SwerveJoystickCmd extends Command {
     double magnitudeSqrd = Math.pow(magnitude, 2);
 
     double linearVelocity =
-        magnitudeSqrd * SwerveConstants.kMaxSpeedMetersPerSecond * m_linearSpeedLimitChooser.get();
+        magnitudeSqrd
+            * SwerveConstants.kMaxSpeedMetersPerSecond
+            * 0.75; // m_linearSpeedLimitChooser.get();
     Rotation2d linearDirection = new Rotation2d(xDir, yDir);
 
     // Rotation speed stuff
@@ -99,7 +102,7 @@ public class SwerveJoystickCmd extends Command {
         MathUtil.applyDeadband(
                 m_turnDrivePercentFunction.get(), ControllerConstants.kSwerveDriveDeadband)
             * SwerveConstants.kMaxSpeedAngularRadiansPerSecond
-            * m_angularSpeedLimitChooser.get();
+            * 0.75; // * m_angularSpeedLimitChooser.get();
 
     // This does the trig for us and lets us get the x/y velocity
     Translation2d translation = new Translation2d(linearVelocity, linearDirection);
@@ -134,9 +137,9 @@ public class SwerveJoystickCmd extends Command {
     SwerveModuleState[] moduleStates =
         SwerveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds);
 
-    Logger.recordOutput("SwerveJoystickCmd/expectedModuleStates", moduleStates);
-    Logger.recordOutput("SwerveJoystickCmd/expectedVelocity", linearVelocity);
-    Logger.recordOutput("SwerveJoystickCmd/expectedAngularVelocity", angularVelocity);
+    // Logger.recordOutput("SwerveJoystickCmd/expectedModuleStates", moduleStates);
+    // Logger.recordOutput("SwerveJoystickCmd/expectedVelocity", linearVelocity);
+    // Logger.recordOutput("SwerveJoystickCmd/expectedAngularVelocity", angularVelocity);
     m_swerveSubsystem.setModuleStates(moduleStates);
   }
 

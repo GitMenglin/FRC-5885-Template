@@ -17,13 +17,12 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.Constants.SwerveConstants.ModuleConstants;
 import frc.robot.commands.SwerveJoystickCmd;
-import frc.robot.commands.TuningCommands.SwerveGetModuleOffsets;
-import frc.robot.commands.TuningCommands.SwerveSolveFeedForward;
 import frc.robot.subsystems.PoseEstimatorSubsystem.SwervePoseEstimator;
 import frc.robot.subsystems.SwerveDriveSubsystem.SwerveDrive;
 import frc.robot.subsystems.SwerveDriveSubsystem.SwerveModuleNEO;
 import frc.robot.subsystems.SwerveDriveSubsystem.SwerveModuleSim;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+
+// import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 public class RobotContainer {
 
@@ -34,11 +33,11 @@ public class RobotContainer {
   private final SwerveDrive m_swerveDrive;
   private final SwervePoseEstimator m_swervePoseEstimator;
 
-  private final LoggedDashboardChooser<Command> m_autoChooser =
-      new LoggedDashboardChooser<>("Auto Routine");
+  //   private final LoggedDashboardChooser<Command> m_autoChooser =
+  //       new LoggedDashboardChooser<>("Auto Routine");
 
-  private final LoggedDashboardChooser<Command> m_initialPoseChooser =
-      new LoggedDashboardChooser<>("Starting Pose");
+  //   private final LoggedDashboardChooser<Command> m_initialPoseChooser =
+  //       new LoggedDashboardChooser<>("Starting Pose");
 
   public RobotContainer() {
     // Setup controllers depending on the current mode
@@ -90,11 +89,11 @@ public class RobotContainer {
     m_swervePoseEstimator = new SwervePoseEstimator(m_swerveDrive);
     m_swervePoseEstimator.reset(new Pose2d(0, 0, new Rotation2d()));
 
-    m_autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
-    m_autoChooser.addOption(
-        "[TUNING] Get Module Offsets", new SwerveGetModuleOffsets(m_swerveDrive));
-    m_autoChooser.addOption(
-        "[TUNING] Get Swerve FF Characteristics", new SwerveSolveFeedForward(m_swerveDrive));
+    // m_autoChooser.addDefaultOption("Do Nothing", new InstantCommand());
+    // m_autoChooser.addOption(
+    //     "[TUNING] Get Module Offsets", new SwerveGetModuleOffsets(m_swerveDrive));
+    // m_autoChooser.addOption(
+    //     "[TUNING] Get Swerve FF Characteristics", new SwerveSolveFeedForward(m_swerveDrive));
     // m_autoChooser.addOption(
     //     "[TUNING] SysID Quasistatic Forward",
     //     m_swerveDrive.getSysIdQuasistatic(Direction.kForward));
@@ -163,7 +162,7 @@ public class RobotContainer {
             () -> {
               m_swervePoseEstimator.reset(new Pose2d());
             }),
-        new WaitCommand(1),
-        m_autoChooser.get());
+        new WaitCommand(1)); // ,
+    // m_autoChooser.get());
   }
 }

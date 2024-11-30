@@ -18,18 +18,19 @@ import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.Constants.SwerveConstants.ModuleConstants;
-import org.littletonrobotics.junction.Logger;
+// import org.littletonrobotics.junction.Logger;
+import frc.robot.subsystems.SwerveDriveSubsystem.SwerveModuleIO.SwerveModuleIOInputs;
 
 public class SwerveDrive extends SubsystemBase {
 
   private final SwerveModuleIO[] m_modules = new SwerveModuleIO[4];
   private final AHRS m_gyro;
   // IO Modules can't be defined in constructor, so they are defined here
-  private final SwerveModuleIOInputsAutoLogged[] m_modulesInput = {
-    new SwerveModuleIOInputsAutoLogged(),
-    new SwerveModuleIOInputsAutoLogged(),
-    new SwerveModuleIOInputsAutoLogged(),
-    new SwerveModuleIOInputsAutoLogged()
+  private final SwerveModuleIOInputs[] m_modulesInput = {
+    new SwerveModuleIOInputs(),
+    new SwerveModuleIOInputs(),
+    new SwerveModuleIOInputs(),
+    new SwerveModuleIOInputs()
   };
 
   private final PIDController[] m_turnController = new PIDController[4];
@@ -96,7 +97,8 @@ public class SwerveDrive extends SubsystemBase {
   public void periodic() {
     for (int i = 0; i != 4; i++) {
       m_modules[i].updateInputs(m_modulesInput[i]);
-      Logger.processInputs("SwerveDrive/Modules/Module" + Integer.toString(i), m_modulesInput[i]);
+      // Logger.processInputs("SwerveDrive/Modules/Module" + Integer.toString(i),
+      // m_modulesInput[i]);
     }
 
     var chassisSpeeds = SwerveConstants.kDriveKinematics.toChassisSpeeds(getModuleStates());
@@ -108,9 +110,9 @@ public class SwerveDrive extends SubsystemBase {
       m_heading = m_heading.plus(Rotation2d.fromRadians(chassisRotationSpeed * 0.02));
     }
 
-    Logger.recordOutput("SwerveDrive/currentModuleStates", getModuleStates());
-    Logger.recordOutput("SwerveDrive/headingDegrees", m_heading.getDegrees());
-    Logger.recordOutput("SwerveDrive/headingRadians", m_heading.getRadians());
+    // Logger.recordOutput("SwerveDrive/currentModuleStates", getModuleStates());
+    // Logger.recordOutput("SwerveDrive/headingDegrees", m_heading.getDegrees());
+    // Logger.recordOutput("SwerveDrive/headingRadians", m_heading.getRadians());
   }
 
   public Pose2d getFieldVelocity() {
