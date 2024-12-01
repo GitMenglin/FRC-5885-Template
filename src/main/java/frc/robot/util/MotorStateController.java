@@ -15,8 +15,25 @@ import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.LinearSystemLoop;
 import frc.robot.Constants.StateModelConstants;
 
-/** Add your docs here. */
+/**
+ * Combines a controller, feedforward, and observer for controlling a mechanism with full state feedback.
+ * 
+ * <p>For everything in this file, "inputs" and "outputs" are defined from the perspective of the plant. 
+ * This means U is an input and Y is an output (because you give the plant U (powers) and it gives you back a Y (sensor values)). 
+ * This is the opposite of what they mean from the perspective of the controller (U is an output because that's what goes to the motors and Y is an input because that's what comes back from the sensors).
+ * 
+ * @see {@link edu.wpi.first.math.system.LinearSystemLoop}
+ */
 public class MotorStateController extends LinearSystemLoop<N2, N1, N2> {
+  /**
+   * Constructs a MotorStateController. By default, the maximum voltage that can be applied is 12.
+   * 
+   * @param plant The state-space plant being controlled.
+   * @param q The maximum desired error tolerance for each state.
+   * @see {@link edu.wpi.first.math.system.LinearSystem}
+   * @see {@link edu.wpi.first.math.controller.LinearQuadraticRegulator}
+   * @see {@link edu.wpi.first.math.estimator.KalmanFilter}
+   */
   public MotorStateController(LinearSystem<N2, N1, N2> plant, Vector<N2> q) {
     super(
         plant,
