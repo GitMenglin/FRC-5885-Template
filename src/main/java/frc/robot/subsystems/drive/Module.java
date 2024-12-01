@@ -141,10 +141,11 @@ public class Module {
               MatBuilder.fill(
                   Nat.N2(),
                   Nat.N1(),
-                  getPositionMeters() + adjustSpeedSetpoint * 0.02,
-                  adjustSpeedSetpoint);
+                  m_inputs.drivePositionRad + velocityRadPerSec * 0.02,
+                  velocityRadPerSec);
           Matrix<N2, N1> driveMeasurement =
-              MatBuilder.fill(Nat.N2(), Nat.N1(), getPositionMeters(), getVelocityMetersPerSec());
+              MatBuilder.fill(
+                  Nat.N2(), Nat.N1(), m_inputs.drivePositionRad, m_inputs.driveVelocityRadPerSec);
           m_io.setDriveVoltage(m_driveState.calculate(driveMeasurement, driveReference));
         }
       }

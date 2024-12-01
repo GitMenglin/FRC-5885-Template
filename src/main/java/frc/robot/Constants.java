@@ -76,17 +76,15 @@ public final class Constants {
   }
 
   public static class StateModelConstants {
-    public static final double kVdrive = 0.1;
-    public static final double kAdrive = 0.1;
-    public static final Vector<N2> kQdrive =
-        VecBuilder.fill(Units.degreesToRadians(1.0), Units.degreesToRadians(10.0));
+    public static final double kVdrive = 0.13394;
+    public static final double kAdrive = 0.017079;
+    public static final Vector<N2> kQdrive = VecBuilder.fill(0.1, 22.416);
 
-    public static final double kVturn = 0.001;
-    public static final double kAturn = 0.001;
-    public static final Vector<N2> kQturn =
-        VecBuilder.fill(Units.degreesToRadians(1.0), Units.degreesToRadians(10.0));
+    public static final double kVturn = 0.00425;
+    public static final double kAturn = 0.0008547;
+    public static final Vector<N2> kQturn = VecBuilder.fill(0.1, 7.0555);
 
-    public static final Matrix<N2, N1> kStateStdDevs = VecBuilder.fill(3.0, 3.0);
+    public static final Matrix<N2, N1> kStateStdDevs = VecBuilder.fill(0.66612, 0.66612);
     public static final Matrix<N2, N1> kMeasurementStdDevs = VecBuilder.fill(0.01, 0.01);
   }
 
