@@ -5,11 +5,11 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.numbers.*;
 import edu.wpi.first.math.util.Units;
 
 /**
@@ -73,6 +73,21 @@ public final class Constants {
       public static final PIDConstants kTranslationPID = new PIDConstants(0.1, 0.0, 0.0);
       public static final PIDConstants kRotationPID = new PIDConstants(0.1, 0.0, 0.0);
     }
+  }
+
+  public static class StateModelConstants {
+    public static final double kVdrive = 0.1;
+    public static final double kAdrive = 0.1;
+    public static final Vector<N2> kQdrive =
+        VecBuilder.fill(Units.degreesToRadians(1.0), Units.degreesToRadians(10.0));
+
+    public static final double kVturn = 0.001;
+    public static final double kAturn = 0.001;
+    public static final Vector<N2> kQturn =
+        VecBuilder.fill(Units.degreesToRadians(1.0), Units.degreesToRadians(10.0));
+
+    public static final Matrix<N2, N1> kStateStdDevs = VecBuilder.fill(3.0, 3.0);
+    public static final Matrix<N2, N1> kMeasurementStdDevs = VecBuilder.fill(0.01, 0.01);
   }
 
   public static final class SwerveModuleConstants {
