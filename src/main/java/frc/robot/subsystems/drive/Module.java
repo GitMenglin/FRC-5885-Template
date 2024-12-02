@@ -4,9 +4,8 @@
 
 package frc.robot.subsystems.drive;
 
-import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.Nat;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -40,13 +39,15 @@ public class Module {
       new MotorStateController(
           LinearSystemId.createDCMotorSystem(
               StateModelConstants.kVdrive, StateModelConstants.kAdrive),
-          StateModelConstants.kQdrive);
+          StateModelConstants.kQdrive,
+          this::getDriveMotorStates);
 
   private final MotorStateController m_turnState =
       new MotorStateController(
           LinearSystemId.createDCMotorSystem(
               StateModelConstants.kVturn, StateModelConstants.kAturn),
-          StateModelConstants.kQturn);
+          StateModelConstants.kQturn,
+          this::getTurnMotorStates);
 
   private static boolean m_isStateSpace = false;
 
@@ -108,15 +109,10 @@ public class Module {
             m_turnFeedback.calculate(getAngle().getRadians(), m_angleSetpoint.getRadians()));
       } else {
         Matrix<N2, N1> turnReference =
-            MatBuilder.fill(
-                Nat.N2(),
-                Nat.N1(),
+            VecBuilder.fill(
                 m_angleSetpoint.getRadians(),
                 (m_angleSetpoint.getRadians() - getAngle().getRadians()) / 0.02);
-        Matrix<N2, N1> turnMeasurement =
-            MatBuilder.fill(
-                Nat.N2(), Nat.N1(), getAngle().getRadians(), m_inputs.turnVelocityRadPerSec);
-        m_io.setTurnVoltage(m_turnState.calculate(turnMeasurement, turnReference));
+        m_io.setTurnVoltage(m_turnState.calculate(turnReference));
       }
 
       // Run closed loop drive control
@@ -138,15 +134,9 @@ public class Module {
                   + m_driveFeedback.calculate(m_inputs.driveVelocityRadPerSec, velocityRadPerSec));
         } else {
           Matrix<N2, N1> driveReference =
-              MatBuilder.fill(
-                  Nat.N2(),
-                  Nat.N1(),
-                  m_inputs.drivePositionRad + velocityRadPerSec * 0.02,
-                  velocityRadPerSec);
-          Matrix<N2, N1> driveMeasurement =
-              MatBuilder.fill(
-                  Nat.N2(), Nat.N1(), m_inputs.drivePositionRad, m_inputs.driveVelocityRadPerSec);
-          m_io.setDriveVoltage(m_driveState.calculate(driveMeasurement, driveReference));
+              VecBuilder.fill(
+                  m_inputs.drivePositionRad + velocityRadPerSec * 0.02, velocityRadPerSec);
+          m_io.setDriveVoltage(m_driveState.calculate(driveReference));
         }
       }
     }
@@ -218,6 +208,20 @@ public class Module {
   /** Returns the module state (turn angle and drive velocity). */
   public SwerveModuleState getState() {
     return new SwerveModuleState(getVelocityMetersPerSec(), getAngle());
+  }
+
+  /**
+   * @return The drive motor states [angular position, angular velocity] measured with radians.
+   */
+  public Matrix<N2, N1> getDriveMotorStates() {
+    return VecBuilder.fill(m_inputs.drivePositionRad, m_inputs.driveVelocityRadPerSec);
+  }
+
+  /**
+   * @return The turn motor states [angular position, angular velocity] measured with radians.
+   */
+  public Matrix<N2, N1> getTurnMotorStates() {
+    return VecBuilder.fill(getAngle().getRadians(), m_inputs.turnVelocityRadPerSec);
   }
 
   /** Returns the drive velocity in radians/sec. */
