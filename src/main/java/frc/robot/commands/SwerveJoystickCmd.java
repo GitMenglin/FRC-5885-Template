@@ -31,20 +31,22 @@ public class SwerveJoystickCmd extends Command {
       m_turnDrivePercentFunction;
   private final Supplier<Boolean> m_fieldOrientedFunction;
 
-  // private static final LoggedDashboardChooser<Double> m_linearSpeedLimitChooser =
-  //     new LoggedDashboardChooser<>("Linear Speed Limit");
-  // private static final LoggedDashboardChooser<Double> m_angularSpeedLimitChooser =
-  //     new LoggedDashboardChooser<>("Angular Speed Limit");
+  // private static final LoggedDashboardChooser<Double> m_linearSpeedLimitChooser
+  // =
+  // new LoggedDashboardChooser<>("Linear Speed Limit");
+  // private static final LoggedDashboardChooser<Double>
+  // m_angularSpeedLimitChooser =
+  // new LoggedDashboardChooser<>("Angular Speed Limit");
 
   // static {
-  //   m_linearSpeedLimitChooser.addDefaultOption("100%", 1.0);
-  //   m_linearSpeedLimitChooser.addOption("75%", 0.75);
-  //   m_linearSpeedLimitChooser.addOption("50%", 0.5);
-  //   m_linearSpeedLimitChooser.addOption("25%", 0.25);
-  //   m_angularSpeedLimitChooser.addDefaultOption("100%", 1.0);
-  //   m_angularSpeedLimitChooser.addOption("75%", 0.75);
-  //   m_angularSpeedLimitChooser.addOption("50%", 0.5);
-  //   m_angularSpeedLimitChooser.addOption("25%", 0.25);
+  // m_linearSpeedLimitChooser.addDefaultOption("100%", 1.0);
+  // m_linearSpeedLimitChooser.addOption("75%", 0.75);
+  // m_linearSpeedLimitChooser.addOption("50%", 0.5);
+  // m_linearSpeedLimitChooser.addOption("25%", 0.25);
+  // m_angularSpeedLimitChooser.addDefaultOption("100%", 1.0);
+  // m_angularSpeedLimitChooser.addOption("75%", 0.75);
+  // m_angularSpeedLimitChooser.addOption("50%", 0.5);
+  // m_angularSpeedLimitChooser.addOption("25%", 0.25);
   // }
 
   /** Creates a new SwerveJoystickCmd. */
@@ -67,7 +69,8 @@ public class SwerveJoystickCmd extends Command {
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
@@ -91,61 +94,53 @@ public class SwerveJoystickCmd extends Command {
     // need to be changed.
     double magnitudeSqrd = Math.pow(magnitude, 2);
 
-    double linearVelocity =
-        magnitudeSqrd
-            * SwerveConstants.kMaxSpeedMetersPerSecond
-            * 0.75; // m_linearSpeedLimitChooser.get();
+    double linearVelocity = magnitudeSqrd
+        * SwerveConstants.kMaxSpeedMetersPerSecond
+        * 0.75; // m_linearSpeedLimitChooser.get();
     Rotation2d linearDirection = new Rotation2d(xDir, yDir);
 
     // Rotation speed stuff
-    double angularVelocity =
-        MathUtil.applyDeadband(
-                m_turnDrivePercentFunction.get(), ControllerConstants.kSwerveDriveDeadband)
-            * SwerveConstants.kMaxSpeedAngularRadiansPerSecond
-            * 0.75; // * m_angularSpeedLimitChooser.get();
+    double angularVelocity = MathUtil.applyDeadband(
+        m_turnDrivePercentFunction.get(), ControllerConstants.kSwerveDriveDeadband)
+        * SwerveConstants.kMaxSpeedAngularRadiansPerSecond
+        * 0.75; // * m_angularSpeedLimitChooser.get();
 
     // This does the trig for us and lets us get the x/y velocity
     Translation2d translation = new Translation2d(linearVelocity, linearDirection);
-    ChassisSpeeds chassisSpeeds;
+    ChassisSpeeds chassisSpeeds = new ChassisSpeeds(translation.getX(), translation.getY(), angularVelocity);
+    ;
 
     // Use field oriented drive
     if (m_fieldOrientedFunction.get()) {
       Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
 
-      chassisSpeeds =
-          ChassisSpeeds.fromFieldRelativeSpeeds(
-              translation.getX(),
-              translation.getY(),
-              angularVelocity,
-              m_poseEstimator // This is used to compensate for skew when driving and turning.
-                  // No idea how this works, but it does.
-                  .getPose()
-                  .getRotation()
-                  .plus(
-                      new Rotation2d(
-                          m_swerveSubsystem.getAngularVelocity() * SwerveConstants.kDriftFactor))
-                  .plus(
-                      new Rotation2d(
-                          Units.degreesToRadians(alliance == Alliance.Blue ? 0.0 : 180.0))));
+      chassisSpeeds.toRobotRelativeSpeeds(m_poseEstimator
+          .getPose()
+          .getRotation()
+          .plus(
+              new Rotation2d(
+                  m_swerveSubsystem.getAngularVelocity() * SwerveConstants.kDriftFactor))
+          .plus(
+              new Rotation2d(
+                  Units.degreesToRadians(alliance == Alliance.Blue ? 0.0 : 180.0))));
 
-    } else {
-      chassisSpeeds = new ChassisSpeeds(translation.getX(), translation.getY(), angularVelocity);
     }
 
     // chassisSpeeds = ChassisSpeeds.discretize(chassisSpeeds, 0.02);
 
-    SwerveModuleState[] moduleStates =
-        SwerveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds);
+    SwerveModuleState[] moduleStates = SwerveConstants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds);
 
     // Logger.recordOutput("SwerveJoystickCmd/expectedModuleStates", moduleStates);
     // Logger.recordOutput("SwerveJoystickCmd/expectedVelocity", linearVelocity);
-    // Logger.recordOutput("SwerveJoystickCmd/expectedAngularVelocity", angularVelocity);
+    // Logger.recordOutput("SwerveJoystickCmd/expectedAngularVelocity",
+    // angularVelocity);
     m_swerveSubsystem.setModuleStates(moduleStates);
   }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+  }
 
   // Returns true when the command should end.
   @Override
