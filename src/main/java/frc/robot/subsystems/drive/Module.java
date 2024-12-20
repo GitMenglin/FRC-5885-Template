@@ -40,6 +40,7 @@ public class Module {
           LinearSystemId.createDCMotorSystem(
               StateModelConstants.kVdrive, StateModelConstants.kAdrive),
           StateModelConstants.kQdrive,
+          StateModelConstants.kDriveStateStdDevs,
           this::getDriveMotorStates);
 
   private final MotorStateController m_turnState =
@@ -47,6 +48,7 @@ public class Module {
           LinearSystemId.createDCMotorSystem(
               StateModelConstants.kVturn, StateModelConstants.kAturn),
           StateModelConstants.kQturn,
+          StateModelConstants.kTurnStateStdDevs,
           this::getTurnMotorStates);
 
   private static boolean m_isStateSpace = false;
@@ -104,16 +106,17 @@ public class Module {
 
     // Run closed loop turn control
     if (m_angleSetpoint != null) {
-      if (!m_isStateSpace) {
-        m_io.setTurnVoltage(
-            m_turnFeedback.calculate(getAngle().getRadians(), m_angleSetpoint.getRadians()));
-      } else {
-        Matrix<N2, N1> turnReference =
-            VecBuilder.fill(
-                m_angleSetpoint.getRadians(),
-                (m_angleSetpoint.getRadians() - getAngle().getRadians()) / 0.02);
-        m_io.setTurnVoltage(m_turnState.calculate(turnReference));
-      }
+      // TODO may not be necessary for turning
+      // if (!m_isStateSpace) {
+      m_io.setTurnVoltage(
+          m_turnFeedback.calculate(getAngle().getRadians(), m_angleSetpoint.getRadians()));
+      // } else {
+      //   Matrix<N2, N1> turnReference =
+      //       VecBuilder.fill(
+      //           m_angleSetpoint.getRadians(),
+      //           (m_angleSetpoint.getRadians() - getAngle().getRadians()) / 0.02);
+      //   m_io.setTurnVoltage(m_turnState.calculate(turnReference));
+      // }
 
       // Run closed loop drive control
       // Only allowed if closed loop turn control is running

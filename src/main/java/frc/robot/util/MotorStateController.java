@@ -13,7 +13,6 @@ import edu.wpi.first.math.estimator.KalmanFilter;
 import edu.wpi.first.math.numbers.*;
 import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.LinearSystemLoop;
-import frc.robot.Constants.StateModelConstants;
 import java.util.function.Supplier;
 
 /**
@@ -41,17 +40,15 @@ public class MotorStateController extends LinearSystemLoop<N2, N1, N2> {
    * @see {@link edu.wpi.first.math.estimator.KalmanFilter}
    */
   public MotorStateController(
-      LinearSystem<N2, N1, N2> plant, Vector<N2> q, Supplier<Matrix<N2, N1>> measurement) {
+      LinearSystem<N2, N1, N2> plant,
+      Vector<N2> q,
+      Matrix<N2, N1> stateStdDevs,
+      Supplier<Matrix<N2, N1>> measurement) {
     super(
         plant,
         new LinearQuadraticRegulator<>(plant, q, VecBuilder.fill(12.0), 0.02),
         new KalmanFilter<>(
-            Nat.N2(),
-            Nat.N2(),
-            plant,
-            StateModelConstants.kStateStdDevs,
-            StateModelConstants.kMeasurementStdDevs,
-            0.02),
+            Nat.N2(), Nat.N2(), plant, stateStdDevs, VecBuilder.fill(0.01, 0.01), 0.02),
         12.0,
         0.02);
 

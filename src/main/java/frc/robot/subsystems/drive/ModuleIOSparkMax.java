@@ -120,7 +120,9 @@ public class ModuleIOSparkMax implements ModuleIO {
 
     inputs.turnAbsolutePosition =
         new Rotation2d(
-                m_turnAbsoluteEncoder.getVoltage() / RobotController.getVoltage5V() * 2.0 * Math.PI)
+                (m_turnAbsoluteEncoder.getVoltage() / RobotController.getVoltage5V())
+                    * 2.0
+                    * Math.PI)
             .minus(m_absoluteEncoderOffset);
     inputs.turnPosition = inputs.turnAbsolutePosition;
     inputs.turnVelocityRadPerSec =

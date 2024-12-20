@@ -59,13 +59,13 @@ public final class Constants {
 
     public static final double kSdrive = 0.0;
     public static final double kVdrive = 0.0;
-    public static final double kPdrive = 0.1;
+    public static final double kPdrive = 1.0;
     public static final double kIdrive = 0.0;
     public static final double kDdrive = 0.0;
 
-    public static final double kPturn = 1.0;
+    public static final double kPturn = 6.5;
     public static final double kIturn = 0.0;
-    public static final double kDturn = 0.0;
+    public static final double kDturn = 0.25;
 
     public static final double kMaxSpeedMetersPerSecond = 4.2;
 
@@ -78,14 +78,14 @@ public final class Constants {
   public static class StateModelConstants {
     public static final double kVdrive = 0.13394;
     public static final double kAdrive = 0.017079;
-    public static final Vector<N2> kQdrive = VecBuilder.fill(0.1, 22.416);
+    // public static final Vector<N2> kQdrive = VecBuilder.fill(0.1, 22.416);
+    public static final Vector<N2> kQdrive = VecBuilder.fill(0.1, 0.02);
+    public static final Matrix<N2, N1> kDriveStateStdDevs = VecBuilder.fill(0.66612, 0.66612);
 
     public static final double kVturn = 0.00425;
     public static final double kAturn = 0.0008547;
     public static final Vector<N2> kQturn = VecBuilder.fill(0.1, 7.0555);
-
-    public static final Matrix<N2, N1> kStateStdDevs = VecBuilder.fill(0.66612, 0.66612);
-    public static final Matrix<N2, N1> kMeasurementStdDevs = VecBuilder.fill(0.01, 0.01);
+    public static final Matrix<N2, N1> kTurnStateStdDevs = VecBuilder.fill(0.66612, 0.66612);
   }
 
   public static final class SwerveModuleConstants {
