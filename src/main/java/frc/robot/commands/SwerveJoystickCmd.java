@@ -114,7 +114,7 @@ public class SwerveJoystickCmd extends Command {
     if (m_fieldOrientedFunction.get()) {
       Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
 
-      chassisSpeeds.toRobotRelativeSpeeds(m_poseEstimator
+      chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(chassisSpeeds, m_poseEstimator
           .getPose()
           .getRotation()
           .plus(

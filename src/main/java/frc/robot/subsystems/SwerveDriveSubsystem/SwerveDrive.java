@@ -176,8 +176,7 @@ public class SwerveDrive extends SubsystemBase {
       // TODO: Maybe this works?????
       m_modules[i].setDriveVoltage(
           m_driveFeedforward[i]
-              .calculate(LinearVelocity.ofBaseUnits(desiredStates[i].speedMetersPerSecond, Units.MetersPerSecond))
-              .magnitude()
+              .calculate(desiredStates[i].speedMetersPerSecond)
               + m_driveController[i].calculate(
                   m_modulesInput[i].driveVelocityMetersPerSec,
                   desiredStates[i].speedMetersPerSecond));

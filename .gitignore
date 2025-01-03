@@ -183,4 +183,5 @@ ctre_sim/
 /.cache
 compile_commands.json
 
-src/main/java/frc/robot/kernal/BuildConstants.java
+# Eclipse generated file for annotation processors
+.factorypath
