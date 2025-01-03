@@ -10,12 +10,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import java.io.File;
 
-// import org.littletonrobotics.junction.LoggedRobot;
-// import org.littletonrobotics.junction.Logger;
-// import org.littletonrobotics.junction.networktables.NT4Publisher;
-// import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
-public class Robot extends TimedRobot {
+public class Robot extends LoggedRobot {
   private Command m_autonomousCommand;
   private RobotContainer m_robotContainer;
 
@@ -67,7 +67,7 @@ public class Robot extends TimedRobot {
           }
         }
       }
-      // Logger.addDataReceiver(new NT4Publisher());
+      Logger.addDataReceiver(new NT4Publisher());
 
       if (!found_thumbdrive) {
         System.out.println("Not logging to usb!");
@@ -75,10 +75,10 @@ public class Robot extends TimedRobot {
     } else {
       // Running a physics simulator, log to local folder
       // Logger.addDataReceiver(new WPILOGWriter("logs/"));
-      // Logger.addDataReceiver(new NT4Publisher());
+      Logger.addDataReceiver(new NT4Publisher());
     }
 
-    // Logger.start();
+    Logger.start();
     m_robotContainer = new RobotContainer();
   }
 
