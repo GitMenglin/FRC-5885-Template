@@ -13,12 +13,12 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.units.Distance;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.MutableMeasure;
-import edu.wpi.first.units.Units;
-import edu.wpi.first.units.Velocity;
-import edu.wpi.first.units.Voltage;
+import edu.wpi.first.units.measure.Units;
+import edu.wpi.first.units.measure.Velocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
@@ -222,7 +222,7 @@ public class SwerveDrive extends SubsystemBase {
     }
   }
 
-  private void sysidSetVoltageDrive(Measure<Voltage> volts) {
+  private void sysidSetVoltageDrive(Voltage volts) {
     for (int i = 0; i != 4; i++) {
       setModulesAngle(0.0);
       m_modules[i].setDriveVoltage(volts.in(Units.Volts));
@@ -230,12 +230,12 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
-  private final MutableMeasure<Voltage> m_appliedVoltage =
+  private final MutVoltage m_appliedVoltage =
       MutableMeasure.mutable(Units.Volts.of(0));
   // Mutable holder for unit-safe linear distance values, persisted to avoid reallocation.
-  private final MutableMeasure<Distance> m_distance = MutableMeasure.mutable(Units.Meters.of(0));
+  private final MutDistance m_distance = MutableMeasure.mutable(Units.Meters.of(0));
   // Mutable holder for unit-safe linear velocity values, persisted to avoid reallocation.
-  private final MutableMeasure<Velocity<Distance>> m_velocity =
+  private final MutLinearVelocity m_velocity =
       MutableMeasure.mutable(Units.MetersPerSecond.of(0));
 
   private SysIdRoutineLog sysidGetLog(SysIdRoutineLog log) {
