@@ -16,9 +16,10 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.AutoConstants.PoseEstimatorConstants;
 import frc.robot.Constants.SwerveConstants;
+import frc.robot.subsystems.PoseEstimatorSubsystem.NoodleVisionIO.NoodleVisionIOInputs;
 import frc.robot.subsystems.SwerveDriveSubsystem.SwerveDrive;
 import java.util.function.Supplier;
-import org.littletonrobotics.junction.Logger;
+// import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
 public class SwervePoseEstimator extends SubsystemBase {
@@ -31,8 +32,8 @@ public class SwervePoseEstimator extends SubsystemBase {
 
   private final NoodleVision m_noodleVision1;
 
-  private final NoodleVisionIOInputsAutoLogged[] m_noodleVisionInputs = {
-    new NoodleVisionIOInputsAutoLogged(),
+  private final NoodleVisionIOInputs[] m_noodleVisionInputs = {
+    new NoodleVisionIOInputs(),
   };
 
   private final Transform3d[] m_cameraPoses = {PoseEstimatorConstants.kCameraPositionMeters[0]};
@@ -60,8 +61,8 @@ public class SwervePoseEstimator extends SubsystemBase {
   @Override
   public void periodic() {
 
-    Logger.recordOutput(
-        "SwervePoseEstimator/estimatedPose", m_poseEstimator.getEstimatedPosition());
+    // Logger.recordOutput(
+    //     "SwervePoseEstimator/estimatedPose", m_poseEstimator.getEstimatedPosition());
     m_poseEstimator.update(m_rotationSupplier.get(), m_swerveModulePositionSupplier.get());
     // System.out.println(m_visibleTagsSubscriber.get().length);
 
@@ -146,8 +147,8 @@ public class SwervePoseEstimator extends SubsystemBase {
         // double avgDistance = totalDistance / tagPoses.size();
 
         // System.out.print("Lodding");
-        Logger.recordOutput("SwervePoseEstimator/visionEstimatedPose", cameraPose.toPose2d());
-        Logger.recordOutput("SwervePoseEstimator/visionEstimatedPose3D", cameraPose);
+        // Logger.recordOutput("SwervePoseEstimator/visionEstimatedPose", cameraPose.toPose2d());
+        // Logger.recordOutput("SwervePoseEstimator/visionEstimatedPose3D", cameraPose);
         m_poseEstimator.addVisionMeasurement(cameraPose.toPose2d(), timestamp);
       }
     }

@@ -5,15 +5,16 @@
 package frc.robot.kernal;
 
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import java.io.File;
-import org.littletonrobotics.junction.LoggedRobot;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.NT4Publisher;
-import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+// import org.littletonrobotics.junction.LoggedRobot;
+// import org.littletonrobotics.junction.Logger;
+// import org.littletonrobotics.junction.networktables.NT4Publisher;
+// import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
-public class Robot extends LoggedRobot {
+public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private RobotContainer m_robotContainer;
 
@@ -22,61 +23,61 @@ public class Robot extends LoggedRobot {
 
     // Copied from advtangekit examples
     // Record metadata
-    Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
-    Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
-    Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
-    Logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
-    Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
-    switch (BuildConstants.DIRTY) {
-      case 0:
-        Logger.recordMetadata("GitDirty", "All changes committed");
-        break;
-      case 1:
-        Logger.recordMetadata("GitDirty", "Uncomitted changes");
-        break;
-      default:
-        Logger.recordMetadata("GitDirty", "Unknown");
-        break;
-    }
+    // Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
+    // Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
+    // Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
+    // Logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
+    // Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
+    // switch (BuildConstants.DIRTY) {
+    //   case 0:
+    //     Logger.recordMetadata("GitDirty", "All changes committed");
+    //     break;
+    //   case 1:
+    //     Logger.recordMetadata("GitDirty", "Uncomitted changes");
+    //     break;
+    //   default:
+    //     Logger.recordMetadata("GitDirty", "Unknown");
+    //     break;
+    // }
 
     // Copied from advtangekit examples
     // Set up data receivers & replay source
-    if (RobotBase.isReal()) {
-      // Running on a real robot, log to a USB stick
-      // TODO: Wait for fix
-      boolean found_thumbdrive = false;
-      File directory = new File("/media/");
-      if (directory.isDirectory()) {
-        File[] subdirectories = directory.listFiles(File::isDirectory);
-        if (subdirectories != null) {
-          for (File subdirectory : subdirectories) {
-            File[] files = subdirectory.listFiles();
-            if (files != null) {
-              for (File file : files) {
-                if (file.getName().equals("start_logging")) {
-                  // Do something when the file is found
-                  Logger.addDataReceiver(new WPILOGWriter(file.getParent()));
-                  System.out.println("Writting to USB! @" + file.getParent());
-                  found_thumbdrive = true;
-                  break;
-                }
-              }
-            }
-          }
-        }
-      }
-      Logger.addDataReceiver(new NT4Publisher());
+    // if (RobotBase.isReal()) {
+    //   // Running on a real robot, log to a USB stick
+    //   // TODO: Wait for fix
+    //   boolean found_thumbdrive = false;
+    //   File directory = new File("/media/");
+    //   if (directory.isDirectory()) {
+    //     File[] subdirectories = directory.listFiles(File::isDirectory);
+    //     if (subdirectories != null) {
+    //       for (File subdirectory : subdirectories) {
+    //         File[] files = subdirectory.listFiles();
+    //         if (files != null) {
+    //           for (File file : files) {
+    //             if (file.getName().equals("start_logging")) {
+    //               // Do something when the file is found
+    //               Logger.addDataReceiver(new WPILOGWriter(file.getParent()));
+    //               System.out.println("Writting to USB! @" + file.getParent());
+    //               found_thumbdrive = true;
+    //               break;
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    //   Logger.addDataReceiver(new NT4Publisher());
 
-      if (!found_thumbdrive) {
-        System.out.println("Not logging to usb!");
-      }
-    } else {
-      // Running a physics simulator, log to local folder
-      Logger.addDataReceiver(new WPILOGWriter("logs/"));
-      Logger.addDataReceiver(new NT4Publisher());
-    }
+    //   if (!found_thumbdrive) {
+    //     System.out.println("Not logging to usb!");
+    //   }
+    // } else {
+    //   // Running a physics simulator, log to local folder
+    //   Logger.addDataReceiver(new WPILOGWriter("logs/"));
+    //   Logger.addDataReceiver(new NT4Publisher());
+    // }
 
-    Logger.start();
+    // Logger.start();
     m_robotContainer = new RobotContainer();
   }
 

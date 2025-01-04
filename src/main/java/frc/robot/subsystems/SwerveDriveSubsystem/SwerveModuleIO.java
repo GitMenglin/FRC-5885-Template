@@ -4,11 +4,11 @@
 
 package frc.robot.subsystems.SwerveDriveSubsystem;
 
-import org.littletonrobotics.junction.AutoLog;
+// import org.littletonrobotics.junction.AutoLog;
 
 public interface SwerveModuleIO {
 
-  @AutoLog
+  // @AutoLog
   public static class SwerveModuleIOInputs {
     public double drivePositionMeters = 0.0;
     public double driveVelocityMetersPerSec = 0.0;

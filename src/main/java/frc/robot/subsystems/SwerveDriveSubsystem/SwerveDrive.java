@@ -4,7 +4,9 @@
 
 package frc.robot.subsystems.SwerveDriveSubsystem;
 
-import com.kauailabs.navx.frc.AHRS;
+import com.studica.frc.AHRS;
+import com.studica.frc.AHRS.NavXComType;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -16,29 +18,28 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.MutableMeasure;
-import edu.wpi.first.units.measure.Units;
+// import edu.wpi.first.units.measure.Units;
 import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.Constants.SwerveConstants.ModuleConstants;
-import org.littletonrobotics.junction.Logger;
+// import org.littletonrobotics.junction.Logger;
+import frc.robot.subsystems.SwerveDriveSubsystem.SwerveModuleIO.SwerveModuleIOInputs;
 
 public class SwerveDrive extends SubsystemBase {
 
   private final SwerveModuleIO[] m_modules = new SwerveModuleIO[4];
   private final AHRS m_gyro;
   // IO Modules can't be defined in constructor, so they are defined here
-  private final SwerveModuleIOInputsAutoLogged[] m_modulesInput = {
-    new SwerveModuleIOInputsAutoLogged(),
-    new SwerveModuleIOInputsAutoLogged(),
-    new SwerveModuleIOInputsAutoLogged(),
-    new SwerveModuleIOInputsAutoLogged()
+  private final SwerveModuleIOInputs[] m_modulesInput = {
+    new SwerveModuleIOInputs(),
+    new SwerveModuleIOInputs(),
+    new SwerveModuleIOInputs(),
+    new SwerveModuleIOInputs()
   };
 
   private final PIDController[] m_turnController = new PIDController[4];
@@ -51,8 +52,6 @@ public class SwerveDrive extends SubsystemBase {
 
   private Rotation2d m_heading = new Rotation2d(0);
 
-  private SysIdRoutine m_sysIdRoutine;
-
   /** Creates a new SwerveDrive. */
   public SwerveDrive(
       SwerveModuleIO frontLeft,
@@ -60,7 +59,7 @@ public class SwerveDrive extends SubsystemBase {
       SwerveModuleIO backLeft,
       SwerveModuleIO backRight) {
 
-    m_gyro = new AHRS(SPI.Port.kMXP);
+    m_gyro = new AHRS(NavXComType.kMXP_SPI);
     resetGyro();
 
     m_modules[0] = frontLeft;
@@ -101,18 +100,13 @@ public class SwerveDrive extends SubsystemBase {
                 ModuleConstants.Simulation.kDriveFeedForwardKa);
       }
     }
-
-    m_sysIdRoutine =
-        new SysIdRoutine(
-            new SysIdRoutine.Config(),
-            new SysIdRoutine.Mechanism(this::sysidSetVoltageDrive, this::sysidGetLog, this));
   }
 
   @Override
   public void periodic() {
     for (int i = 0; i != 4; i++) {
       m_modules[i].updateInputs(m_modulesInput[i]);
-      Logger.processInputs("SwerveDrive/Modules/Module" + Integer.toString(i), m_modulesInput[i]);
+      // Logger.processInputs("SwerveDrive/Modules/Module" + Integer.toString(i), m_modulesInput[i]);
     }
 
     var chassisSpeeds = SwerveConstants.kDriveKinematics.toChassisSpeeds(getModuleStates());
@@ -124,9 +118,9 @@ public class SwerveDrive extends SubsystemBase {
       m_heading = m_heading.plus(Rotation2d.fromRadians(chassisRotationSpeed * 0.02));
     }
 
-    Logger.recordOutput("SwerveDrive/currentModuleStates", getModuleStates());
-    Logger.recordOutput("SwerveDrive/headingDegrees", m_heading.getDegrees());
-    Logger.recordOutput("SwerveDrive/headingRadians", m_heading.getRadians());
+    // Logger.recordOutput("SwerveDrive/currentModuleStates", getModuleStates());
+    // Logger.recordOutput("SwerveDrive/headingDegrees", m_heading.getDegrees());
+    // Logger.recordOutput("SwerveDrive/headingRadians", m_heading.getRadians());
   }
 
   public Pose2d getFieldVelocity() {
@@ -220,68 +214,6 @@ public class SwerveDrive extends SubsystemBase {
     for (int i = 0; i != 4; i++) {
       m_modules[i].setDriveVoltage(voltage);
     }
-  }
-
-  private void sysidSetVoltageDrive(Voltage volts) {
-    for (int i = 0; i != 4; i++) {
-      setModulesAngle(0.0);
-      m_modules[i].setDriveVoltage(volts.in(Units.Volts));
-    }
-  }
-
-  // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
-  private final MutVoltage m_appliedVoltage =
-      MutableMeasure.mutable(Units.Volts.of(0));
-  // Mutable holder for unit-safe linear distance values, persisted to avoid reallocation.
-  private final MutDistance m_distance = MutableMeasure.mutable(Units.Meters.of(0));
-  // Mutable holder for unit-safe linear velocity values, persisted to avoid reallocation.
-  private final MutLinearVelocity m_velocity =
-      MutableMeasure.mutable(Units.MetersPerSecond.of(0));
-
-  private SysIdRoutineLog sysidGetLog(SysIdRoutineLog log) {
-    log.motor("drive-left")
-        .voltage(
-            m_appliedVoltage.mut_replace(
-                (m_modulesInput[0].driveVoltage + m_modulesInput[3].driveVoltage) / 2.0,
-                Units.Volts))
-        .linearPosition(
-            m_distance.mut_replace(
-                (m_modulesInput[0].drivePositionMeters + m_modulesInput[3].drivePositionMeters)
-                    / 2.0,
-                Units.Meters))
-        .linearVelocity(
-            m_velocity.mut_replace(
-                (m_modulesInput[0].driveVelocityMetersPerSec
-                        + m_modulesInput[3].driveVelocityMetersPerSec)
-                    / 2.0,
-                Units.MetersPerSecond));
-
-    log.motor("drive-right")
-        .voltage(
-            m_appliedVoltage.mut_replace(
-                (m_modulesInput[1].driveVoltage + m_modulesInput[2].driveVoltage) / 2.0,
-                Units.Volts))
-        .linearPosition(
-            m_distance.mut_replace(
-                (m_modulesInput[1].drivePositionMeters + m_modulesInput[2].drivePositionMeters)
-                    / 2.0,
-                Units.Meters))
-        .linearVelocity(
-            m_velocity.mut_replace(
-                (m_modulesInput[1].driveVelocityMetersPerSec
-                        + m_modulesInput[2].driveVelocityMetersPerSec)
-                    / 2.0,
-                Units.MetersPerSecond));
-
-    return log;
-  }
-
-  public Command getSysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.quasistatic(direction);
-  }
-
-  public Command getSysIdDynamic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.dynamic(direction);
   }
 
   public ChassisSpeeds getChassisSpeeds() {

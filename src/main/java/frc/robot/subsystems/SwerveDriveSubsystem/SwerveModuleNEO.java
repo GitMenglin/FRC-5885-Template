@@ -4,22 +4,24 @@
 
 package frc.robot.subsystems.SwerveDriveSubsystem;
 
-import com.revrobotics.CANSparkBase.IdleMode;
-import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkMax;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.Constants.SwerveConstants;
-import frc.robot.utils.SparkMaxConfigurer;
 
 /** Add your docs here. */
 public class SwerveModuleNEO implements SwerveModuleIO {
 
-  private CANSparkMax m_driveMotor;
-  private CANSparkMax m_turnMotor;
+  private SparkMax m_driveMotor;
+  private SparkMax m_turnMotor;
 
   private AnalogInput m_turnAbsoluteEncoder;
   private Rotation2d m_turnAbsoluteEncoderOffset;
@@ -34,38 +36,37 @@ public class SwerveModuleNEO implements SwerveModuleIO {
       Rotation2d turnAbsoluteEncoderOffset,
       boolean turnMotorReversed,
       boolean driveMotorReversed) {
-    m_driveMotor = new CANSparkMax(driveMotorId, MotorType.kBrushless);
-    m_turnMotor = new CANSparkMax(turnMotorId, MotorType.kBrushless);
+    m_driveMotor = new SparkMax(driveMotorId, MotorType.kBrushless);
+    m_turnMotor = new SparkMax(turnMotorId, MotorType.kBrushless);
     m_turnAbsoluteEncoder = new AnalogInput(turnAbsoluteEncoderId);
     m_turnAbsoluteEncoderOffset = turnAbsoluteEncoderOffset;
 
     m_driveDefaultEncoder = m_driveMotor.getEncoder();
     m_turnRelativeEncoder = m_turnMotor.getEncoder();
 
-    m_driveMotor.setInverted(driveMotorReversed);
-    m_turnMotor.setInverted(turnMotorReversed);
+    SparkMaxConfig driveConfig = new SparkMaxConfig();
+    SparkMaxConfig turnConfig = new SparkMaxConfig();
+
+    driveConfig
+        .inverted(driveMotorReversed)
+        .idleMode(IdleMode.kBrake);
+    turnConfig
+        .inverted(turnMotorReversed)
+        .idleMode(IdleMode.kBrake);
+
+    driveConfig.encoder
+        .positionConversionFactor(SwerveConstants.ModuleConstants.kDriveEncoderRot2Meter)
+        .velocityConversionFactor(SwerveConstants.ModuleConstants.kDriveEncoderRPM2MeterPerSec);
+    turnConfig.encoder
+        .positionConversionFactor(SwerveConstants.ModuleConstants.kTurningEncoderRot2Rad)
+        .velocityConversionFactor(SwerveConstants.ModuleConstants.kTurningEncoderRPM2RadPerSec);
+
+    m_driveMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    m_turnMotor.configure(turnConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     // Optimize the spark max frame timings to clean up the CAN bus
-    SparkMaxConfigurer.setFrameTimingsOptmized(m_driveMotor);
-    SparkMaxConfigurer.setFrameTimingsOptmized(m_turnMotor);
-
-    // This sets the update rate of the spark max position value
-    // TODO: Motors has timeout issues, needs to find a way to detect and fix
-    // m_driveMotor.setPeriodicFramePeriod(CANSparkMax.PeriodicFrame.kStatus2, 10);
-    // if (!SwerveConstants.kUseExternalEncoders)
-    //   m_turnMotor.setPeriodicFramePeriod(CANSparkMax.PeriodicFrame.kStatus2, 10);
-
-    // This sets the conversion factor in the spark max, apparently
-    // this can cause some issues. Needs investigating.
-    m_driveDefaultEncoder.setPositionConversionFactor(
-        SwerveConstants.ModuleConstants.kDriveEncoderRot2Meter);
-    m_driveDefaultEncoder.setVelocityConversionFactor(
-        SwerveConstants.ModuleConstants.kDriveEncoderRPM2MeterPerSec);
-
-    m_turnRelativeEncoder.setPositionConversionFactor(
-        SwerveConstants.ModuleConstants.kTurningEncoderRot2Rad);
-    m_turnRelativeEncoder.setVelocityConversionFactor(
-        SwerveConstants.ModuleConstants.kTurningEncoderRPM2RadPerSec);
+    // SparkMaxConfigurer.setFrameTimingsOptmized(m_driveMotor);
+    // SparkMaxConfigurer.setFrameTimingsOptmized(m_turnMotor);
 
     m_turnRelativeEncoder.setPosition(getAbsoluteEncoderValue().getRadians());
   }
@@ -88,9 +89,8 @@ public class SwerveModuleNEO implements SwerveModuleIO {
       inputs.turnPositionRad = m_turnRelativeEncoder.getPosition();
     }
 
-    inputs.turnVelocityRadPerSec =
-        Units.rotationsPerMinuteToRadiansPerSecond(m_turnRelativeEncoder.getVelocity())
-            / (1 / SwerveConstants.ModuleConstants.kTurningMotorGearRatio);
+    inputs.turnVelocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(m_turnRelativeEncoder.getVelocity())
+        / (1 / SwerveConstants.ModuleConstants.kTurningMotorGearRatio);
 
     inputs.turnTemperature = m_turnMotor.getMotorTemperature();
     inputs.turnCurrent = m_turnMotor.getOutputCurrent();
@@ -100,8 +100,7 @@ public class SwerveModuleNEO implements SwerveModuleIO {
   ////////////////////////////////////////
   // Calculate angle from absolute encoder
   public Rotation2d getAbsoluteEncoderValue() {
-    double absolutePositionPercent =
-        (m_turnAbsoluteEncoder.getVoltage() / RobotController.getVoltage5V());
+    double absolutePositionPercent = (m_turnAbsoluteEncoder.getVoltage() / RobotController.getVoltage5V());
     return new Rotation2d(absolutePositionPercent * 2.0 * Math.PI)
         .minus(m_turnAbsoluteEncoderOffset);
   }
@@ -115,10 +114,12 @@ public class SwerveModuleNEO implements SwerveModuleIO {
   }
 
   public void setDriveBrakeMode(boolean enable) {
-    m_driveMotor.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
+    // m_driveMotor.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
+    throw new UnsupportedOperationException("setDriveBrakeMode not implemented");
   }
 
   public void setTurnBrakeMode(boolean enable) {
-    m_turnMotor.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
+    // m_turnMotor.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
+    throw new UnsupportedOperationException("setTurnBrakeMode not implemented");
   }
 }

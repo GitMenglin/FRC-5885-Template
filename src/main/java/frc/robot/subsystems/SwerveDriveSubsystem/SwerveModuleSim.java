@@ -6,15 +6,18 @@ package frc.robot.subsystems.SwerveDriveSubsystem;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.robot.Constants.SwerveConstants;
 
 /** Add your docs here. */
 public class SwerveModuleSim implements SwerveModuleIO {
 
-  private FlywheelSim m_driveMotor = new FlywheelSim(DCMotor.getNEO(1), 6.75, 0.025);
+  private FlywheelSim m_driveMotor = new FlywheelSim( LinearSystemId.createFlywheelSystem(DCMotor.getNEO(1), 0.025, 6.75), DCMotor.getNEO(1));
+  //new FlywheelSim(DCMotor.getNEO(1), 6.75, 0.025);
 
-  private FlywheelSim m_turnMotor = new FlywheelSim(DCMotor.getNEO(1), 150.0 / 7.0, 0.004096955);
+  private FlywheelSim m_turnMotor = new FlywheelSim( LinearSystemId.createFlywheelSystem(DCMotor.getNEO(1), 0.004096955, 150.0 / 7.0), DCMotor.getNEO(1));
+  // new FlywheelSim(DCMotor.getNEO(1), 150.0 / 7.0, 0.004096955);
 
   private double m_driveVelocity; // m/s
   private double m_driveDistance; // m

@@ -1,10 +1,10 @@
 package frc.robot.subsystems.PoseEstimatorSubsystem;
 
-import org.littletonrobotics.junction.AutoLog;
+// import org.littletonrobotics.junction.AutoLog;
 
 public interface NoodleVisionIO {
 
-  @AutoLog
+  // @AutoLog
   public static class NoodleVisionIOInputs {
     public double[] observations = new double[] {};
     public double timestamp = 0.0;
