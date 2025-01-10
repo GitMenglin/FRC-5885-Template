@@ -21,7 +21,7 @@ import org.littletonrobotics.junction.Logger;
 
 public class QuestNav extends SubsystemBase {
   // CONSTANTS
-  private Translation2d robotToQuestTransform = new Translation2d(0, Units.inchesToMeters(12));
+  private Translation2d robotToQuestTransform = new Translation2d(0, Units.inchesToMeters(16));
   private Translation2d questToFieldTransform = new Translation2d();
 
   // Configure Network Tables topics (questnav/...) to communicate with the Quest HMD
@@ -42,8 +42,7 @@ public class QuestNav extends SubsystemBase {
       nt4Table.getDoubleTopic("batteryPercent").subscribe(0.0f);
 
   // Local heading helper variables
-  private float yaw_offset = 0.0f;
-  private Pose2d resetPosition = new Pose2d();
+  private Pose2d initPosition = new Pose2d();
 
   public QuestNav() {
     resetPose();
@@ -57,16 +56,13 @@ public class QuestNav extends SubsystemBase {
   }
 
   public void resetPose() {
-    zeroHeading();
-    zeroPosition();
-    questToFieldTransform = getQuestNavPose().minus(resetPosition).getTranslation();
+    initPosition = getQuestNavPose();
   }
 
   // Gets the Quest's measured position.
   public Pose2d getPose() {
-    return new Pose2d(
-        getQuestNavPose().minus(resetPosition).getTranslation().minus(questToFieldTransform),
-        Rotation2d.fromDegrees(-getOculusYaw()));
+    Pose2d rslt = getQuestNavPose();
+    return new Pose2d(rslt.getTranslation(), rslt.getRotation());
   }
 
   // Gets the battery percent of the Quest.
@@ -90,19 +86,19 @@ public class QuestNav extends SubsystemBase {
     return questTimestamp.get();
   }
 
-  // Zero the relative robot heading
-  public void zeroHeading() {
-    float[] eulerAngles = questEulerAngles.get();
-    yaw_offset = eulerAngles[1];
-  }
+  // // Zero the relative robot heading
+  // public void zeroHeading() {
+  //   float[] eulerAngles = questEulerAngles.get();
+  //   initPosition. = eulerAngles[1];
+  // }
 
   // Zero the absolute 3D position of the robot (similar to long-pressing the quest logo)
-  public void zeroPosition() {
-    resetPosition = getPose();
-    if (questMiso.get() != 99) {
-      questMosi.set(1);
-    }
-  }
+  // public void zeroPosition() {
+  //   resetPosition = getPose();
+  //   if (questMiso.get() != 99) {
+  //     questMosi.set(1);
+  //   }
+  // }
 
   // Clean up questnav subroutine messages after processing on the headset
   public void cleanUpQuestNavMessages() {
@@ -114,12 +110,7 @@ public class QuestNav extends SubsystemBase {
   // Get the yaw Euler angle of the headset
   private float getOculusYaw() {
     float[] eulerAngles = questEulerAngles.get();
-    var ret = eulerAngles[1] - yaw_offset;
-    ret %= 360;
-    if (ret < 0) {
-      ret += 360;
-    }
-    return ret;
+    return -eulerAngles[1];
   }
 
   private Translation2d getQuestNavTranslation() {
@@ -128,7 +119,8 @@ public class QuestNav extends SubsystemBase {
   }
 
   private Pose2d getQuestNavPose() {
-    var oculousPositionCompensated = getQuestNavTranslation().minus(robotToQuestTransform);
-    return new Pose2d(oculousPositionCompensated, Rotation2d.fromDegrees(getOculusYaw()));
+    var rotation = Rotation2d.fromDegrees(getOculusYaw());
+    var centerPosition = getQuestNavTranslation().minus(robotToQuestTransform.rotateBy(rotation));
+    return new Pose2d(centerPosition, rotation);
   }
 }
